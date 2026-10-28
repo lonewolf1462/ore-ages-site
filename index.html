@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ore &amp; Ages · From town to metropolis</title>
+<meta name="description" content="Ore & Ages is a Web3 browser game. Gather resources, build your empire, trade with players and own your assets as NFTs on Solana (devnet).">
+<style>
+  :root {
+    --bg: #0a1512;
+    --panel: #0d1f1d;
+    --panel-2: #112824;
+    --border: rgba(61, 220, 132, 0.22);
+    --gold: #f2b632;
+    --gold-2: #f5c242;
+    --gold-grad: linear-gradient(180deg, #ffe08a 0%, #f5c242 45%, #b7791f 100%);
+    --green: #3ddc84;
+    --white: #f5f5f5;
+    --muted: #b8c2bf;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body {
+    font-family: Inter, "Open Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--white);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  img { max-width: 100%; display: block; }
+  h1, h2, h3, .caps { font-family: Montserrat, Oswald, "Arial Black", Impact, sans-serif; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .gold-text {
+    background: var(--gold-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 24px rgba(242, 182, 50, 0.25);
+  }
+  .section { padding: 90px 6vw; position: relative; }
+  .section-title { text-align: center; font-size: clamp(1.7rem, 3.4vw, 2.5rem); font-weight: 800; }
+  .section-title::after {
+    content: ""; display: block; width: 120px; height: 2px; margin: 14px auto 0;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .section-sub { text-align: center; color: var(--muted); margin: 14px auto 40px; max-width: 640px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 13px 26px; border-radius: 8px; font-weight: 700; font-size: 0.95rem;
+    font-family: Montserrat, Oswald, sans-serif; text-transform: uppercase; letter-spacing: 0.05em;
+    cursor: pointer; transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    border: 1px solid transparent; white-space: nowrap;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-gold {
+    background: linear-gradient(180deg, #ffd65c, var(--gold-2) 50%, #d9962a);
+    color: #1a1305;
+    box-shadow: 0 0 18px rgba(245, 194, 66, 0.35);
+  }
+  .btn-gold:hover { box-shadow: 0 0 30px rgba(245, 194, 66, 0.6); }
+  .btn-outline {
+    background: rgba(10, 21, 18, 0.55); color: var(--white);
+    border-color: var(--gold);
+  }
+  .btn-outline:hover { background: rgba(242, 182, 50, 0.12); box-shadow: 0 0 22px rgba(242, 182, 50, 0.3); }
+  .btn-small { padding: 9px 18px; font-size: 0.82rem; }
+
+  /* NAV */
+  nav.topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(8, 17, 14, 0.94);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 5vw; gap: 16px;
+  }
+  .logo-text {
+    font-family: Montserrat, Oswald, "Arial Black", sans-serif; font-weight: 900;
+    font-size: 1.35rem; letter-spacing: 0.06em;
+    background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 8px rgba(242,182,50,.35));
+  }
+  .nav-links { display: flex; gap: 26px; list-style: none; }
+  .nav-links a { color: var(--white); font-size: 0.92rem; font-weight: 500; opacity: .9; transition: color .2s; }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .live-badge { display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--green); font-weight: 600; white-space: nowrap; }
+  .live-dot {
+    width: 9px; height: 9px; border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 0 0 rgba(61,220,132,.7); animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(61,220,132,.7);} 70% { box-shadow: 0 0 0 9px rgba(61,220,132,0);} 100% { box-shadow: 0 0 0 0 rgba(61,220,132,0);} }
+  .menu-toggle { display: none; background: none; border: 1px solid var(--border); color: var(--white); border-radius: 6px; padding: 6px 10px; font-size: 1.1rem; cursor: pointer; }
+
+  /* HERO */
+  .hero {
+    position: relative; min-height: calc(100vh - 62px); min-height: min(860px, calc(100svh - 62px));
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    background: url("keyart.png") center / cover no-repeat;
+    padding: 80px 6vw 110px;
+  }
+  .hero::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(10,21,18,.55) 0%, rgba(10,21,18,.85) 70%, #0a1512 100%);
+  }
+  .hero-inner { position: relative; z-index: 1; max-width: 860px; }
+  .hero-logo {
+    font-family: Montserrat, Oswald, "Arial Black", sans-serif; font-weight: 900;
+    font-size: clamp(3.2rem, 9vw, 6.5rem); line-height: 1; letter-spacing: .05em;
+    background: linear-gradient(180deg, #fff1b8 0%, #f5c242 40%, #b7791f 70%, #f5c242 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 4px 18px rgba(0,0,0,.8)) drop-shadow(0 0 22px rgba(242,182,50,.35));
+  }
+  .hero-tagline {
+    margin-top: 18px; font-weight: 700; font-size: clamp(1rem, 2.2vw, 1.4rem);
+    letter-spacing: .32em; color: var(--white); text-shadow: 0 2px 10px rgba(0,0,0,.8);
+  }
+  .hero-sub {
+    margin-top: 10px; font-size: clamp(1.05rem, 2vw, 1.25rem); color: var(--gold);
+    font-style: italic; text-shadow: 0 2px 10px rgba(0,0,0,.8);
+  }
+  .hero-desc {
+    margin: 22px auto 0; max-width: 680px; color: #dfe7e4; font-size: 1.02rem;
+    text-shadow: 0 2px 8px rgba(0,0,0,.9);
+  }
+  .hero-ctas { margin-top: 34px; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .hero-note { margin-top: 26px; font-size: .85rem; color: var(--muted); }
+  .disclaimer-strip {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+    background: rgba(8,17,14,.9); border-top: 1px solid var(--border);
+    text-align: center; padding: 14px 16px; font-size: .9rem; color: var(--green); font-weight: 600; letter-spacing: .03em;
+  }
+
+  /* STATS */
+  .stats-head { text-align: center; margin-bottom: 36px; }
+  .stats-head p { color: var(--muted); font-size: .95rem; margin-top: 10px; }
+  .stats-status { font-size: .8rem; color: var(--muted); margin-top: 8px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 18px; max-width: 1200px; margin: 0 auto; }
+  .stat-card {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--border); border-radius: 14px; padding: 22px 18px; text-align: center;
+    box-shadow: 0 0 18px rgba(61,220,132,.05); transition: border-color .25s, box-shadow .25s, transform .25s;
+  }
+  .stat-card:hover { border-color: rgba(242,182,50,.55); box-shadow: 0 0 24px rgba(242,182,50,.15); transform: translateY(-3px); }
+  .stat-icon { font-size: 1.7rem; margin-bottom: 10px; }
+  .stat-label { font-size: .75rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .stat-value { font-family: Montserrat, Oswald, sans-serif; font-size: 2.1rem; font-weight: 800; color: var(--white); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .stat-delta { font-size: .8rem; color: var(--green); margin-top: 4px; }
+
+  /* FEATURES */
+  .features { background: linear-gradient(180deg, var(--bg), #0c1b18 50%, var(--bg)); }
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+  .feature-card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 30px 22px; text-align: center;
+    transition: border-color .25s, box-shadow .25s, transform .25s;
+  }
+  .feature-card:hover { border-color: var(--gold); box-shadow: 0 0 26px rgba(242,182,50,.18); transform: translateY(-4px); }
+  .feature-icon {
+    width: 68px; height: 68px; margin: 0 auto 16px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 2rem;
+    background: radial-gradient(circle, rgba(242,182,50,.18), rgba(242,182,50,0) 70%);
+    border: 1px solid rgba(242,182,50,.4);
+  }
+  .feature-card h3 { font-size: .98rem; font-weight: 800; margin-bottom: 10px; }
+  .feature-card p { color: var(--muted); font-size: .92rem; }
+
+  /* HOW IT WORKS */
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; max-width: 1200px; margin: 0 auto; position: relative; }
+  .step { text-align: center; padding: 10px; position: relative; }
+  .step-num {
+    width: 62px; height: 62px; margin: 0 auto 16px; border-radius: 50%;
+    border: 2px solid var(--gold); color: var(--gold); font-family: Montserrat, Oswald, sans-serif; font-weight: 800; font-size: 1.4rem;
+    display: flex; align-items: center; justify-content: center; background: var(--bg);
+    box-shadow: 0 0 18px rgba(242,182,50,.25);
+  }
+  .step-icon { font-size: 1.6rem; margin-bottom: 8px; }
+  .step h3 { font-size: .98rem; font-weight: 800; margin-bottom: 8px; }
+  .step p { color: var(--muted); font-size: .9rem; }
+  .step:not(:last-child)::after {
+    content: "➜"; position: absolute; right: -14px; top: 22px; color: var(--gold); font-size: 1.2rem; text-shadow: 0 0 8px rgba(242,182,50,.6);
+  }
+
+  /* ROADMAP */
+  .roadmap-panel {
+    max-width: 1200px; margin: 0 auto; background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 40px 36px;
+    box-shadow: 0 0 30px rgba(61,220,132,.06);
+  }
+  .roadmap-panel .section-sub { margin: 10px auto 40px; }
+  .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; position: relative; }
+  .timeline::before {
+    content: ""; position: absolute; top: 26px; left: 12%; right: 12%; height: 3px;
+    background: linear-gradient(90deg, var(--green) 0%, var(--green) 66%, #3a4a46 66%, #3a4a46 100%);
+    box-shadow: 0 0 10px rgba(61,220,132,.4);
+    z-index: 0;
+  }
+  .phase { text-align: center; position: relative; z-index: 1; }
+  .phase-node {
+    width: 54px; height: 54px; margin: 0 auto 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; font-weight: 800; background: var(--bg);
+  }
+  .phase.done .phase-node { border: 2px solid var(--green); color: var(--green); box-shadow: 0 0 16px rgba(61,220,132,.4); }
+  .phase.progress .phase-node { border: 2px solid var(--gold); color: var(--gold); box-shadow: 0 0 16px rgba(242,182,50,.35); }
+  .phase.planned .phase-node { border: 2px dashed #4a5a56; color: #7a8784; }
+  .phase-label { font-size: .75rem; letter-spacing: .1em; color: var(--muted); text-transform: uppercase; }
+  .phase h3 { font-size: .98rem; font-weight: 800; margin: 6px 0; }
+  .phase-status { font-size: .85rem; font-weight: 700; }
+  .phase.done .phase-status { color: var(--green); }
+  .phase.progress .phase-status { color: var(--gold); }
+  .phase.planned .phase-status { color: #9aa8a4; }
+  .roadmap-cta { text-align: center; margin-top: 36px; }
+
+  /* COMMUNITY */
+  .community-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; max-width: 620px; margin: 0 auto; }
+  .social-btn {
+    display: flex; align-items: center; gap: 14px; padding: 18px 22px; border-radius: 12px;
+    background: var(--panel); border: 1px solid var(--border); font-weight: 700; font-size: 1rem;
+    transition: border-color .2s, box-shadow .2s, transform .2s;
+  }
+  .social-btn:hover { border-color: var(--gold); box-shadow: 0 0 20px rgba(242,182,50,.2); transform: translateY(-2px); }
+  .social-ico { font-size: 1.5rem; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: rgba(255,255,255,.05); }
+  .community-note { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 22px; }
+
+  /* FOOTER */
+  footer { background: #060e0c; border-top: 1px solid var(--border); padding: 40px 6vw 28px; }
+  .footer-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; max-width: 1200px; margin: 0 auto; }
+  .footer-links { display: flex; gap: 22px; flex-wrap: wrap; list-style: none; }
+  .footer-links a { color: var(--muted); font-size: .9rem; }
+  .footer-links a:hover { color: var(--gold); }
+  .footer-tag { color: var(--muted); font-size: .85rem; text-align: right; }
+  .copy { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 26px; }
+  .disclaimer-pill {
+    display: block; width: fit-content; margin: 22px auto 0; padding: 8px 18px; border: 1px solid var(--green); border-radius: 999px;
+    color: var(--green); font-size: .8rem; font-weight: 600; text-align: center;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    .steps { grid-template-columns: repeat(2, 1fr); row-gap: 36px; }
+    .step:not(:last-child)::after { display: none; }
+    .timeline { grid-template-columns: repeat(2, 1fr); row-gap: 40px; }
+    .timeline::before { display: none; }
+    .feature-grid { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+  }
+  @media (max-width: 860px) {
+    .nav-links, .live-badge, .nav-right .btn-gold { display: none; }
+    .menu-toggle { display: inline-block; }
+    nav.topbar.open .nav-links {
+      display: flex; flex-direction: column; position: absolute; top: 100%; left: 0; right: 0;
+      background: rgba(8,17,14,.98); padding: 18px 6vw; gap: 16px; border-bottom: 1px solid var(--border);
+    }
+    nav.topbar.open .live-badge { display: inline-flex; }
+    nav.topbar.open .nav-right .btn-gold { display: inline-flex; }
+    .nav-right { position: relative; }
+    .section { padding: 70px 5vw; }
+    .roadmap-panel { padding: 30px 20px; }
+    .community-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 560px) {
+    .steps { grid-template-columns: 1fr; }
+    .timeline { grid-template-columns: 1fr; row-gap: 30px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .stat-value { font-size: 1.6rem; }
+    .feature-grid { grid-template-columns: 1fr; }
+    .hero { padding: 60px 5vw 110px; }
+    .hero-tagline { letter-spacing: .18em; }
+    .hero-ctas .btn { width: 100%; }
+    .footer-tag { text-align: center; }
+    .disclaimer-strip { font-size: .75rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="topbar" id="topbar">
+  <a href="#home" class="logo-text" aria-label="Ore and Ages home">ORE &amp; AGES</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#community">Community</a></li>
+  </ul>
+  <div class="nav-right">
+    <span class="live-badge"><span class="live-dot"></span>Game Live</span>
+    <a class="btn btn-gold btn-small" href="https://oasisdb.netlify.app" target="_blank" rel="noopener">Play Now</a>
+    <button class="menu-toggle" aria-label="Toggle menu" onclick="document.getElementById('topbar').classList.toggle('open')">&#9776;</button>
+  </div>
+</nav>
+
+<header class="hero" id="home">
+  <div class="hero-inner">
+    <div class="hero-logo">ORE &amp; AGES</div>
+    <div class="hero-tagline">BUILD · GATHER · TRADE · OWN</div>
+    <div class="hero-sub">From town to metropolis</div>
+    <p class="hero-desc">A Web3 game where you gather resources, build your empire, trade with other players and truly own your in-game assets as NFTs on the Solana blockchain.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-gold" href="https://oasisdb.netlify.app" target="_blank" rel="noopener">&#9654; Play the Game</a>
+      <a class="btn btn-outline" href="#features">&#128214; Learn More</a>
+    </div>
+    <p class="hero-note">Live at oasisdb.netlify.app</p>
+  </div>
+  <div class="disclaimer-strip">Solana Devnet Testing Only · No Real-Money Purchases</div>
+</header>
+
+<section class="section" id="stats">
+  <div class="stats-head">
+    <h2 class="section-title gold-text">Live Game Statistics</h2>
+    <p>Real-time data from our Solana Devnet.</p>
+    <p class="stats-status" id="stats-status">Showing sample numbers</p>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-icon">🟢</div><div class="stat-label">Active Players</div><div class="stat-value" data-stat="activePlayers">7</div><div class="stat-delta">+2 today</div></div>
+    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-label">Total Players</div><div class="stat-value" data-stat="totalPlayers">24</div><div class="stat-delta">+3 this week</div></div>
+    <div class="stat-card"><div class="stat-icon">⛏️</div><div class="stat-label">Resources Gathered</div><div class="stat-value" data-stat="resourcesGathered">1,482</div><div class="stat-delta">+12% today</div></div>
+    <div class="stat-card"><div class="stat-icon">🏗️</div><div class="stat-label">Buildings Constructed</div><div class="stat-value" data-stat="buildings">36</div><div class="stat-delta">+5 today</div></div>
+    <div class="stat-card"><div class="stat-icon">🖼️</div><div class="stat-label">NFTs Minted</div><div class="stat-value" data-stat="nftsMinted">18</div><div class="stat-delta">+4 today</div></div>
+    <div class="stat-card"><div class="stat-icon">🔁</div><div class="stat-label">Marketplace Transactions</div><div class="stat-value" data-stat="marketTx">12</div><div class="stat-delta">+3 today</div></div>
+    <div class="stat-card"><div class="stat-icon">🏘️</div><div class="stat-label">Communities</div><div class="stat-value" data-stat="communities">5</div><div class="stat-delta">+1 new</div></div>
+  </div>
+</section>
+
+<section class="section features" id="features">
+  <h2 class="section-title gold-text">Features</h2>
+  <p class="section-sub">Start with a pickaxe in a stone-age village and grow into a metropolis. Farm, tame, sail, trade and own what you build.</p>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="feature-icon">⛏️</div><h3>Resource Gathering</h3><p>Mine stone, ore and wood, then craft tools and materials from the stone age to the metropolis.</p></div>
+    <div class="feature-card"><div class="feature-icon">🏗️</div><h3>Build &amp; Expand</h3><p>Raise farms, workshops and shared buildings. Grow day by day as the sun sets and rises, and keep warm at night.</p></div>
+    <div class="feature-card"><div class="feature-icon">🖼️</div><h3>NFT Ownership</h3><p>Your rare items and assets are NFTs on Solana. Own them, trade them, take them with you (devnet testing).</p></div>
+    <div class="feature-card"><div class="feature-icon">💰</div><h3>Crypto Payments</h3><p>Trade with other players in the marketplace. Devnet only for now, no real-money purchases.</p></div>
+    <div class="feature-card"><div class="feature-icon">🤝</div><h3>Community Driven</h3><p>Form communities, share buildings, tame horses, cows, goats and hens, and sail to a mangrove island full of crabs and tropical fish.</p></div>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <h2 class="section-title gold-text">How It Works</h2>
+  <p class="section-sub">Four steps from your first pickaxe swing to a thriving trade empire.</p>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><div class="step-icon">👛</div><h3>Connect Wallet</h3><p>Link a Solana wallet on devnet to start your journey.</p></div>
+    <div class="step"><div class="step-num">2</div><div class="step-icon">🪨</div><h3>Gather Resources</h3><p>Mine ore and stone, harvest crops, and tame wild animals.</p></div>
+    <div class="step"><div class="step-num">3</div><div class="step-icon">🔨</div><h3>Build &amp; Craft</h3><p>Craft tools, raise buildings and grow your village into a metropolis.</p></div>
+    <div class="step"><div class="step-num">4</div><div class="step-icon">📈</div><h3>Trade &amp; Grow</h3><p>Trade with other players, own your assets as NFTs and build your legacy.</p></div>
+  </div>
+</section>
+
+<section class="section" id="roadmap">
+  <div class="roadmap-panel">
+    <h2 class="section-title gold-text">Project Roadmap</h2>
+    <p class="section-sub">Our journey to a full immersive Web3 metaverse.</p>
+    <div class="timeline">
+      <div class="phase done">
+        <div class="phase-node">✓</div>
+        <div class="phase-label">Phase 1</div>
+        <h3>Core Game &amp; Web Platform</h3>
+        <div class="phase-status">Completed</div>
+      </div>
+      <div class="phase progress">
+        <div class="phase-node">✓</div>
+        <div class="phase-label">Phase 2</div>
+        <h3>NFT Marketplace &amp; Community</h3>
+        <div class="phase-status">In Progress</div>
+      </div>
+      <div class="phase planned">
+        <div class="phase-node">✓</div>
+        <div class="phase-label">Phase 3</div>
+        <h3>Multiplayer &amp; Advanced Features</h3>
+        <div class="phase-status">Planned</div>
+      </div>
+      <div class="phase planned">
+        <div class="phase-node">○</div>
+        <div class="phase-label">Phase 4</div>
+        <h3>Metaverse Expansion</h3>
+        <div class="phase-status">Planned</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="community">
+  <h2 class="section-title gold-text">Join Our Community</h2>
+  <p class="section-sub">Follow the build, share your empire and meet other players.</p>
+  <div class="community-grid">
+    <a class="social-btn" href="#" target="_blank" rel="noopener"><span class="social-ico" style="color:#5865F2">💬</span>Discord</a>
+    <a class="social-btn" href="#" target="_blank" rel="noopener"><span class="social-ico">𝕏</span>X (Twitter)</a>
+    <a class="social-btn" href="#" target="_blank" rel="noopener"><span class="social-ico" style="color:#3ddc84">📱</span>WhatsApp</a>
+    <a class="social-btn" href="#" target="_blank" rel="noopener"><span class="social-ico" style="color:#ff4444">▶</span>YouTube</a>
+  </div>
+</section>
+
+<section class="section" id="about" style="padding-top:20px">
+  <h2 class="section-title gold-text">About Ore &amp; Ages</h2>
+  <p class="section-sub">A free browser game with farms, islands, horses, taming, day and night cycles and crabs. Built on Solana devnet so you can test NFT ownership without spending real money.</p>
+</section>
+
+<footer>
+  <div class="footer-top">
+    <div>
+      <div class="logo-text">ORE &amp; AGES</div>
+      <div style="color:var(--muted);font-size:.85rem;margin-top:6px">© 2026 Ore &amp; Ages. All rights reserved.</div>
+    </div>
+    <ul class="footer-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#roadmap">Roadmap</a></li>
+      <li><a href="#community">Community</a></li>
+    </ul>
+    <div class="footer-tag">A new age of gaming.<br>Built on blockchain.<br><span style="color:var(--green)">Solana Devnet</span></div>
+  </div>
+  <div class="copy">© 2026 Ore &amp; Ages</div>
+  <div class="disclaimer-pill">Solana Devnet Testing Only | No Real-Money Purchases | Play Responsibly.</div>
+</footer>
+
+<script>
+(function () {
+  // Live stats: POST to Convex /api/query. Falls back to sample numbers already in the HTML.
+  // Expected function path: 'stats:overview' returning an object with the keys below.
+  // If that function does not exist on the deployment, the request fails and the sample values stay.
+  var CONVEX_URL = 'https://successful-lion-368.convex.cloud';
+  var KEYS = {
+    activePlayers: 'activePlayers', totalPlayers: 'totalPlayers', resourcesGathered: 'resourcesGathered',
+    buildings: 'buildings', nftsMinted: 'nftsMinted', marketTx: 'marketTx', communities: 'communities'
+  };
+  function fmt(n) { return Number(n).toLocaleString('en-US'); }
+  function applyStats(data) {
+    Object.keys(KEYS).forEach(function (k) {
+      var el = document.querySelector('[data-stat="' + KEYS[k] + '"]');
+      if (el && data && data[k] != null) el.textContent = fmt(data[k]);
+    });
+  }
+  function setStatus(text) {
+    var el = document.getElementById('stats-status');
+    if (el) el.textContent = text;
+  }
+  // Attempt 1: the Convex HTTP action at the .convex.site address (CORS enabled in convex/http.ts).
+  // Attempt 2: the direct query endpoint on .convex.cloud. Either one, or the sample numbers, is shown.
+  var CONVEX_SITE_URL = CONVEX_URL.replace('.convex.cloud', '.convex.site');
+  function readStats(res) {
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+  function tryHttpAction() {
+    return fetch(CONVEX_SITE_URL + '/api/stats', { method: 'GET', headers: { 'Accept': 'application/json' } })
+      .then(readStats)
+      .then(function (data) {
+        if (!data || typeof data !== 'object' || data.error) throw new Error('bad payload');
+        return data;
+      });
+  }
+  function tryDirectQuery() {
+    return fetch(CONVEX_URL + '/api/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: 'stats:overview', args: {}, format: 'json' })
+    })
+    .then(readStats)
+    .then(function (body) {
+      var data = body && body.value !== undefined ? body.value : body;
+      if (!data || typeof data !== 'object') throw new Error('bad payload');
+      return data;
+    });
+  }
+  try {
+    tryHttpAction()
+      .catch(function () { return tryDirectQuery(); })
+      .then(function (data) {
+        applyStats(data);
+        setStatus('Live from Solana Devnet');
+      })
+      .catch(function () {
+        setStatus('Showing sample numbers');
+      });
+  } catch (e) {
+    setStatus('Showing sample numbers');
+  }
+  // Close mobile menu after tapping a link
+  document.querySelectorAll('.nav-links a').forEach(function (a) {
+    a.addEventListener('click', function () { document.getElementById('topbar').classList.remove('open'); });
+  });
+})();
+</script>
+</body>
+</html>

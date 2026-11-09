@@ -310,16 +310,16 @@
   <div class="stats-head">
     <h2 class="section-title gold-text">Live Game Statistics</h2>
     <p>Real-time data from our Solana Devnet.</p>
-    <p class="stats-status" id="stats-status">Showing sample numbers</p>
+    <p class="stats-status" id="stats-status">Loading live game data...</p>
   </div>
   <div class="stats-grid">
-    <div class="stat-card"><div class="stat-icon">🟢</div><div class="stat-label">Active Players</div><div class="stat-value" data-stat="activePlayers">7</div><div class="stat-delta">+2 today</div></div>
-    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-label">Total Players</div><div class="stat-value" data-stat="totalPlayers">24</div><div class="stat-delta">+3 this week</div></div>
-    <div class="stat-card"><div class="stat-icon">⛏️</div><div class="stat-label">Resources Gathered</div><div class="stat-value" data-stat="resourcesGathered">1,482</div><div class="stat-delta">+12% today</div></div>
-    <div class="stat-card"><div class="stat-icon">🏗️</div><div class="stat-label">Buildings Constructed</div><div class="stat-value" data-stat="buildings">36</div><div class="stat-delta">+5 today</div></div>
-    <div class="stat-card"><div class="stat-icon">🖼️</div><div class="stat-label">NFTs Minted</div><div class="stat-value" data-stat="nftsMinted">18</div><div class="stat-delta">+4 today</div></div>
-    <div class="stat-card"><div class="stat-icon">🔁</div><div class="stat-label">Marketplace Transactions</div><div class="stat-value" data-stat="marketTx">12</div><div class="stat-delta">+3 today</div></div>
-    <div class="stat-card"><div class="stat-icon">🏘️</div><div class="stat-label">Communities</div><div class="stat-value" data-stat="communities">5</div><div class="stat-delta">+1 new</div></div>
+    <div class="stat-card"><div class="stat-icon">🟢</div><div class="stat-label">Active Players</div><div class="stat-value" data-stat="activePlayers">--</div></div>
+    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-label">Total Players</div><div class="stat-value" data-stat="totalPlayers">--</div></div>
+    <div class="stat-card"><div class="stat-icon">⛏️</div><div class="stat-label">Resources Gathered</div><div class="stat-value" data-stat="resourcesGathered">--</div></div>
+    <div class="stat-card"><div class="stat-icon">🏗️</div><div class="stat-label">Buildings Constructed</div><div class="stat-value" data-stat="buildings">--</div></div>
+    <div class="stat-card"><div class="stat-icon">🖼️</div><div class="stat-label">NFTs Minted</div><div class="stat-value" data-stat="nftsMinted">--</div></div>
+    <div class="stat-card"><div class="stat-icon">🔁</div><div class="stat-label">Marketplace Transactions</div><div class="stat-value" data-stat="marketTx">--</div></div>
+    <div class="stat-card"><div class="stat-icon">🏘️</div><div class="stat-label">Communities</div><div class="stat-value" data-stat="communities">--</div></div>
   </div>
 </section>
 
@@ -418,9 +418,9 @@
 
 <script>
 (function () {
-  // Live stats: POST to Convex /api/query. Falls back to sample numbers already in the HTML.
+  // Fetch only verified live stats from the public Convex endpoint.
   // Expected function path: 'stats:overview' returning an object with the keys below.
-  // If that function does not exist on the deployment, the request fails and the sample values stay.
+  // If live data is unavailable, show placeholders rather than fabricated sample values.
   var CONVEX_URL = 'https://successful-lion-368.convex.cloud';
   var KEYS = {
     activePlayers: 'activePlayers', totalPlayers: 'totalPlayers', resourcesGathered: 'resourcesGathered',
@@ -438,7 +438,7 @@
     if (el) el.textContent = text;
   }
   // Attempt 1: the Convex HTTP action at the .convex.site address (CORS enabled in convex/http.ts).
-  // Attempt 2: the direct query endpoint on .convex.cloud. Either one, or the sample numbers, is shown.
+  // Attempt 2: the direct query endpoint on .convex.cloud.
   var CONVEX_SITE_URL = CONVEX_URL.replace('.convex.cloud', '.convex.site');
   function readStats(res) {
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -473,10 +473,10 @@
         setStatus('Live from Solana Devnet');
       })
       .catch(function () {
-        setStatus('Showing sample numbers');
+        setStatus('Loading live game data...');
       });
   } catch (e) {
-    setStatus('Showing sample numbers');
+    setStatus('Loading live game data...');
   }
   // Close mobile menu after tapping a link
   document.querySelectorAll('.nav-links a').forEach(function (a) {
